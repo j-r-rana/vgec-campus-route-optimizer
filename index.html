@@ -3,291 +3,375 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VGEC Navigator — Shortest Route Finder made by Rana Jaydeep R. </title>
+<title>VGEC Navigator — Shortest Route Finder | Rana Jaydeep R.</title>
 <style>
-  :root{
-    --ink:#0f1b2b;
-    --ink-2:#16263b;
-    --panel:#122135;
-    --line:#2a3b52;
-    --paper:#f2efe9;
-    --paper-dim:#c7cdd6;
-    --amber:#e8a33d;
-    --amber-dim:#8a6428;
-    --ok:#7fb88f;
+  :root {
+    --ink: #0f1b2b;
+    --ink-2: #16263b;
+    --panel: #122135;
+    --line: #2a3b52;
+    --paper: #f2efe9;
+    --paper-dim: #9aa8ba;
+    --amber: #e8a33d;
+    --amber-dim: #8a6428;
+    --ok: #52c41a;
+    --danger: #ff4d4f;
+    --landmark: #38bdf8;
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--ink);
-    color:var(--paper);
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--ink);
+    color: var(--paper);
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    min-height:100vh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
-  .headline-font{
+  .headline-font {
     font-family: Georgia, 'Times New Roman', serif;
   }
 
-  /* ---------- layout shell ---------- */
-  header{
-    padding:28px clamp(20px,4vw,56px) 18px;
-    border-bottom:1px solid var(--line);
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:8px;
+  /* ---------- Header ---------- */
+  header {
+    padding: 20px clamp(20px, 4vw, 48px);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: var(--panel);
   }
-  header .brand{
-    display:flex; align-items:baseline; gap:14px;
+  header .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
   }
-  header h1{
-    font-size:1.5rem;
-    margin:0;
-    font-weight:600;
-    letter-spacing:0.2px;
+  header h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: var(--paper);
   }
-  header .tag{
-    color:var(--paper-dim);
-    font-size:0.82rem;
-    letter-spacing:0.3px;
+  header .tag {
+    color: var(--paper-dim);
+    font-size: 0.82rem;
   }
-  header .dept{
-    font-size:0.78rem;
-    color:var(--amber);
-    text-align:right;
-    line-height:1.4;
-  }
-
-  main{
-    display:grid;
-    grid-template-columns: 340px 1fr;
-    gap:0;
-    min-height:calc(100vh - 92px);
-  }
-  @media (max-width: 880px){
-    main{ grid-template-columns: 1fr; }
+  header .dept {
+    font-size: 0.78rem;
+    color: var(--amber);
+    text-align: right;
+    line-height: 1.4;
   }
 
-  /* ---------- control panel ---------- */
-  .panel{
-    background:var(--panel);
-    border-right:1px solid var(--line);
-    padding:26px 24px 40px;
-    display:flex;
-    flex-direction:column;
-    gap:22px;
+  /* ---------- Main Grid Layout ---------- */
+  main {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    flex: 1;
+    min-height: calc(100vh - 140px);
   }
-  @media (max-width: 880px){
-    .panel{ border-right:none; border-bottom:1px solid var(--line); }
+  @media (max-width: 920px) {
+    main { grid-template-columns: 1fr; }
   }
 
-  .mode-switch{
-    display:flex;
-    border:1px solid var(--line);
-    border-radius:8px;
-    overflow:hidden;
+  /* ---------- Control Panel ---------- */
+  .panel {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
-  .mode-switch button{
-    flex:1;
-    background:transparent;
-    border:none;
-    color:var(--paper-dim);
-    padding:10px 8px;
-    font-size:0.8rem;
-    cursor:pointer;
-    transition:background .15s, color .15s;
-  }
-  .mode-switch button.active{
-    background:var(--amber);
-    color:var(--ink);
-    font-weight:600;
+  @media (max-width: 920px) {
+    .panel {
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+    }
   }
 
-  label{
-    display:block;
-    font-size:0.72rem;
-    text-transform:uppercase;
-    letter-spacing:0.08em;
-    color:var(--paper-dim);
-    margin-bottom:6px;
+  .mode-switch {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--ink-2);
   }
-  select, input{
-    width:100%;
-    background:var(--ink-2);
-    border:1px solid var(--line);
-    color:var(--paper);
-    padding:10px 12px;
-    border-radius:6px;
-    font-size:0.92rem;
+  .mode-switch button {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--paper-dim);
+    padding: 10px 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
   }
-  select:focus, input:focus{
-    outline:2px solid var(--amber);
-    outline-offset:1px;
-  }
-  .field{ display:flex; flex-direction:column; gap:0; }
-  .hint{
-    font-size:0.72rem;
-    color:var(--paper-dim);
-    margin-top:5px;
-    line-height:1.4;
+  .mode-switch button.active {
+    background: var(--amber);
+    color: var(--ink);
+    font-weight: 700;
   }
 
-  .tap-status{
-    border:1px dashed var(--line);
-    border-radius:8px;
-    padding:12px;
-    font-size:0.82rem;
-    color:var(--paper-dim);
-    line-height:1.5;
+  label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--paper-dim);
+    margin-bottom: 6px;
+    font-weight: 600;
   }
-  .tap-status b{ color:var(--paper); }
-
-  button.primary{
-    background:var(--amber);
-    color:var(--ink);
-    border:none;
-    padding:13px 16px;
-    border-radius:8px;
-    font-weight:700;
-    font-size:0.92rem;
-    cursor:pointer;
-    letter-spacing:0.02em;
-    transition:filter .15s;
+  select, input {
+    width: 100%;
+    background: var(--ink-2);
+    border: 1px solid var(--line);
+    color: var(--paper);
+    padding: 11px 12px;
+    border-radius: 6px;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.2s;
   }
-  button.primary:hover{ filter:brightness(1.08); }
-  button.primary:disabled{ opacity:0.4; cursor:not-allowed; }
-
-  button.ghost{
-    background:transparent;
-    border:1px solid var(--line);
-    color:var(--paper-dim);
-    padding:9px 12px;
-    border-radius:8px;
-    font-size:0.8rem;
-    cursor:pointer;
+  select:focus, input:focus {
+    border-color: var(--amber);
   }
-  button.ghost:hover{ color:var(--paper); border-color:var(--paper-dim); }
-
-  .result{
-    border-top:1px solid var(--line);
-    padding-top:18px;
-    display:none;
-    flex-direction:column;
-    gap:10px;
-  }
-  .result.show{ display:flex; }
-  .result .metrics{
-    display:flex;
-    gap:18px;
-  }
-  .metric b{
-    display:block;
-    font-size:1.5rem;
-    font-family:Georgia, serif;
-    color:var(--amber);
-    line-height:1;
-  }
-  .metric span{
-    font-size:0.7rem;
-    color:var(--paper-dim);
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-  }
-  .path-steps{
-    font-size:0.85rem;
-    line-height:1.9;
-    color:var(--paper-dim);
-  }
-  .path-steps b{ color:var(--paper); }
-  .room-note{
-    background:var(--ink-2);
-    border-left:3px solid var(--ok);
-    padding:10px 12px;
-    font-size:0.82rem;
-    border-radius:0 6px 6px 0;
-  }
-  .error-note{
-    background:var(--ink-2);
-    border-left:3px solid #c1594f;
-    padding:10px 12px;
-    font-size:0.82rem;
-    border-radius:0 6px 6px 0;
-    color:#e3a89f;
+  .field { display: flex; flex-direction: column; }
+  .hint {
+    font-size: 0.75rem;
+    color: var(--paper-dim);
+    margin-top: 6px;
+    line-height: 1.4;
   }
 
-  /* ---------- map ---------- */
-  .map-wrap{
-    position:relative;
-    padding:24px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  .tap-status {
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.82rem;
+    color: var(--paper-dim);
+    line-height: 1.5;
+    background: rgba(22, 38, 59, 0.4);
+  }
+  .tap-status b { color: var(--paper); }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  button.primary {
+    background: var(--amber);
+    color: var(--ink);
+    border: none;
+    padding: 13px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: filter 0.15s, transform 0.05s;
+  }
+  button.primary:hover { filter: brightness(1.08); }
+  button.primary:active { transform: translateY(1px); }
+
+  button.ghost {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--paper-dim);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button.ghost:hover {
+    color: var(--paper);
+    border-color: var(--paper-dim);
+  }
+
+  /* ---------- Results Card ---------- */
+  .result {
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .result.show { display: flex; }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    text-align: center;
+    background: var(--ink-2);
+    padding: 12px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+  }
+  .metric b {
+    display: block;
+    font-size: 1.35rem;
+    font-family: Georgia, serif;
+    color: var(--amber);
+    line-height: 1.1;
+  }
+  .metric span {
+    font-size: 0.68rem;
+    color: var(--paper-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .path-steps {
+    font-size: 0.84rem;
+    line-height: 1.8;
+    color: var(--paper-dim);
+    background: rgba(22, 38, 59, 0.4);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .path-steps b { color: var(--paper); }
+  
+  .room-note {
+    background: var(--ink-2);
+    border-left: 3px solid var(--ok);
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    border-radius: 0 6px 6px 0;
+  }
+  .error-note {
+    background: var(--ink-2);
+    border-left: 3px solid var(--danger);
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    border-radius: 0 6px 6px 0;
+    color: #ffa39e;
+  }
+
+  /* ---------- Map SVG Canvas ---------- */
+  .map-wrap {
+    position: relative;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background:
       linear-gradient(var(--ink) 0%, var(--ink) 100%),
       repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 34px),
       repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 34px);
+    overflow: hidden;
   }
-  svg{ width:100%; height:auto; max-width:980px; }
-  .edge{ stroke:var(--line); stroke-width:3; fill:none; }
-  .edge-label{
-    fill:var(--paper-dim);
-    font-size:11px;
+  svg {
+    width: 100%;
+    height: auto;
+    max-width: 980px;
+    user-select: none;
+  }
+  .edge {
+    stroke: var(--line);
+    stroke-width: 3;
+    stroke-linecap: round;
+    fill: none;
+  }
+  .edge-bg {
+    fill: var(--ink);
+    rx: 3px;
+  }
+  .edge-label {
+    fill: var(--paper-dim);
+    font-size: 10.5px;
     font-family: 'Segoe UI', sans-serif;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
   }
-  .route-path{
-    stroke:var(--amber);
-    stroke-width:5;
-    fill:none;
-    stroke-linecap:round;
-    stroke-linejoin:round;
-    stroke-dasharray: 2000;
-    stroke-dashoffset: 2000;
-    filter: drop-shadow(0 0 5px rgba(232,163,61,0.6));
+  .route-path {
+    stroke: var(--amber);
+    stroke-width: 5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 6px rgba(232,163,61,0.7));
   }
-  .route-path.animate{
-    animation: draw 1.1s ease forwards;
+  .route-path.animate {
+    animation: drawRoute 1.1s ease forwards;
   }
-  @keyframes draw{ to { stroke-dashoffset: 0; } }
+  @keyframes drawRoute {
+    to { stroke-dashoffset: 0; }
+  }
 
-  .node-circle{
-    stroke:var(--paper);
-    stroke-width:1.5;
-    fill:var(--ink-2);
-    cursor:pointer;
-    transition: fill .15s, stroke .15s, r .15s;
+  .node-group { cursor: pointer; }
+  .node-circle {
+    stroke: var(--paper-dim);
+    stroke-width: 1.5;
+    fill: var(--ink-2);
+    transition: fill 0.2s, stroke 0.2s, transform 0.2s;
   }
-  .node-circle:hover{ fill:var(--amber-dim); }
-  .node-circle.selected-src{ fill:var(--amber); stroke:var(--amber); }
-  .node-circle.selected-dst{ fill:var(--ok); stroke:var(--ok); }
-  .node-circle.on-route{ stroke:var(--amber); stroke-width:2.5; }
+  .node-group:hover .node-circle {
+    fill: var(--amber-dim);
+    stroke: var(--paper);
+  }
+  .node-circle.is-landmark {
+    stroke: var(--landmark);
+    stroke-dasharray: 2 2;
+  }
+  .node-circle.selected-src {
+    fill: var(--amber) !important;
+    stroke: var(--paper) !important;
+    stroke-width: 2.5;
+  }
+  .node-circle.selected-dst {
+    fill: var(--ok) !important;
+    stroke: var(--paper) !important;
+    stroke-width: 2.5;
+  }
+  .node-circle.on-route {
+    stroke: var(--amber);
+    stroke-width: 3;
+  }
+  .node-label {
+    fill: var(--paper);
+    font-size: 11px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
 
-  .node-label{
-    fill:var(--paper);
-    font-size:12px;
-    font-weight:600;
-    text-anchor:middle;
-    pointer-events:none;
-    font-family:'Segoe UI', sans-serif;
+  .legend {
+    position: absolute;
+    bottom: 20px;
+    left: 24px;
+    font-size: 0.72rem;
+    color: var(--paper-dim);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: rgba(15, 27, 43, 0.9);
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    backdrop-filter: blur(4px);
   }
-  .node-hub circle{ fill:var(--ink-2); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-  .legend{
-    position:absolute;
-    bottom:20px;
-    left:36px;
-    font-size:0.72rem;
-    color:var(--paper-dim);
-    display:flex;
-    gap:16px;
-    flex-wrap:wrap;
-    background:rgba(15,27,43,0.85);
-    padding:8px 12px;
-    border-radius:6px;
-    border:1px solid var(--line);
+  /* ---------- Footer ---------- */
+  footer {
+    border-top: 1px solid var(--line);
+    background: var(--panel);
+    padding: 14px 24px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--paper-dim);
   }
-  .legend span{ display:flex; align-items:center; gap:6px; }
-  .dot{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+  footer b { color: var(--amber); }
 </style>
 </head>
 <body>
@@ -295,105 +379,111 @@
 <header>
   <div class="brand">
     <h1 class="headline-font">VGEC Navigator</h1>
-    <span class="tag">shortest-route campus wayfinding · Dijkstra's algorithm</span>
+    <span class="tag">Shortest-Route Campus Wayfinding</span>
   </div>
-  <div class="dept">Algorithm Analysis &amp; Design · BE05016011<br>Route Optimization Case Study</div>
+  <div class="dept">
+    Algorithm Analysis &amp; Design &bull; BE05016011<br>
+    <strong>Project by Rana Jaydeep R.</strong>
+  </div>
 </header>
 
 <main>
   <section class="panel">
-
     <div>
-      <label>Input mode</label>
+      <label>Input Mode</label>
       <div class="mode-switch">
-        <button id="mode-name" class="active">Search by name</button>
-        <button id="mode-room">Room code</button>
+        <button id="mode-name" class="active">Search by Name</button>
+        <button id="mode-room">Room Code</button>
       </div>
     </div>
 
-    <!-- SOURCE -->
+    <!-- Origin Selection -->
     <div class="field" id="src-field-wrap">
-      <label for="src-select">Starting from</label>
+      <label for="src-select">Starting Point</label>
       <select id="src-select"></select>
     </div>
 
-    <!-- DESTINATION: name mode -->
+    <!-- Destination Selection: Dropdown -->
     <div class="field" id="dst-field-name">
-      <label for="dst-select">Going to</label>
+      <label for="dst-select">Destination Block</label>
       <select id="dst-select"></select>
     </div>
 
-    <!-- DESTINATION: room code mode -->
+    <!-- Destination Selection: Room Code -->
     <div class="field" id="dst-field-room" style="display:none;">
-      <label for="room-input">Room code</label>
-      <input id="room-input" placeholder="e.g. N207 or B201" maxlength="6">
-      <div class="hint">Format: block letter + floor + room, e.g. <b>N207</b> = Block N, Floor 2, Room 07.</div>
+      <label for="room-input">Classroom / Room Code</label>
+      <input id="room-input" placeholder="e.g. N207, B201, C001" maxlength="6">
+      <div class="hint">Format: <b>[Block][Floor][Room]</b> (e.g. <b>N207</b> = Block N, Floor 2, Room 07).</div>
     </div>
 
     <div class="tap-status" id="tap-status">
-      Tip: you can also <b>tap two blocks on the map</b> to set start and destination directly — no dropdown needed.
+      Tip: You can also <b>tap any two nodes on the campus map</b> to set your starting and destination blocks directly.
     </div>
 
-    <button class="primary" id="find-btn">Find shortest route</button>
-    <button class="ghost" id="reset-btn">Reset selection</button>
+    <div class="actions">
+      <button class="primary" id="find-btn">Find Shortest Route</button>
+      <button class="ghost" id="reset-btn">Reset Path</button>
+    </div>
 
     <div class="result" id="result">
       <div class="metrics">
-        <div class="metric"><b id="m-distance">—</b><span>meters</span></div>
-        <div class="metric"><b id="m-time">—</b><span>walk time</span></div>
-        <div class="metric"><b id="m-hops">—</b><span>blocks passed</span></div>
+        <div class="metric"><b id="m-distance">—</b><span>Meters</span></div>
+        <div class="metric"><b id="m-time">—</b><span>Walk Time</span></div>
+        <div class="metric"><b id="m-hops">—</b><span>Hops</span></div>
       </div>
       <div class="path-steps" id="m-path"></div>
       <div id="m-room-note"></div>
     </div>
-
   </section>
-<footer>
-  <h3> <strong>all rights reserved <b>@HRS initiated contribution</b></strong> </h3>
-</footer>
+
   <section class="map-wrap">
-    <svg id="map" viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg" aria-label="VGEC campus graph">
+    <svg id="map" viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg" aria-label="VGEC Campus Graph">
       <g id="edges-layer"></g>
       <g id="route-layer"></g>
       <g id="nodes-layer"></g>
     </svg>
     <div class="legend">
-      <span><i class="dot" style="background:var(--ink-2);border:1px solid var(--paper)"></i> Block</span>
+      <span><i class="dot" style="background:var(--ink-2);border:1px solid var(--paper-dim)"></i> Block</span>
+      <span><i class="dot" style="background:var(--ink-2);border:1px dashed var(--landmark)"></i> Landmark / Facility</span>
       <span><i class="dot" style="background:var(--amber)"></i> Start</span>
       <span><i class="dot" style="background:var(--ok)"></i> Destination</span>
-      <span><i class="dot" style="background:var(--amber);box-shadow:0 0 4px var(--amber)"></i> Shortest path</span>
+      <span><i class="dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></i> Shortest Path</span>
     </div>
   </section>
 </main>
 
+<footer>
+  All rights reserved &bull; <b>@HRS initiated contribution</b> &bull; Developed by Rana Jaydeep R.
+</footer>
+
 <script>
 /* ============================================================
-   1. GRAPH DATA
+   1. GRAPH DATA SPECIFICATION
    ============================================================ */
 const NODES = {
-  I:     { label: "Block I (Central)", x: 474, y: 287 },
-  H:     { label: "Block H",           x: 424, y: 219 },
-  J:     { label: "Block J",           x: 542, y: 242 },
-  K:     { label: "Block K",           x: 592, y: 301 },
-  L:     { label: "Block L",           x: 522, y: 361 },
-  C:     { label: "Block C",           x: 458, y: 417 },
-  F:     { label: "Block F",           x: 408, y: 352 },
-  G:     { label: "Block G",           x: 355, y: 281 },
-  A:     { label: "Block A",           x: 572, y: 433 },
-  B:     { label: "Block B",           x: 510, y: 486 },
-  D:     { label: "Block D",           x: 414, y: 492 },
-  E:     { label: "Block E",           x: 351, y: 418 },
-  N:     { label: "Block N",           x: 338, y: 114 },
-  M:     { label: "Block M",           x: 434, y: 82  },
-  W:     { label: "Block W",           x: 517, y: 102 },
-  BH:    { label: "Boys Hostel",       x: 215, y: 233 },
-  GH:    { label: "Girls Hostel",      x: 684, y: 187 },
-  GTU:   { label: "GTU Building",      x: 281, y: 557 },
-  ENTRY: { label: "Main Entry",        x: 702, y: 583 },
-  FGRD:  { label: "Football Ground",   x: 531, y: 668 },
-  VGRD:  { label: "Volleyball Ground", x: 346, y: 386 },
-  BGRD:  { label: "Basketball Court",  x: 210, y: 466 },
-  PARK:  { label: "Parking Lot",       x: 158, y: 364 },
+  I:     { label: "Block I (Central)", x: 474, y: 287, type: "block" },
+  H:     { label: "Block H",           x: 424, y: 219, type: "block" },
+  J:     { label: "Block J",           x: 542, y: 242, type: "block" },
+  K:     { label: "Block K",           x: 592, y: 301, type: "block" },
+  L:     { label: "Block L",           x: 522, y: 361, type: "block" },
+  C:     { label: "Block C",           x: 458, y: 417, type: "block" },
+  F:     { label: "Block F",           x: 408, y: 352, type: "block" },
+  G:     { label: "Block G",           x: 355, y: 281, type: "block" },
+  A:     { label: "Block A",           x: 572, y: 433, type: "block" },
+  B:     { label: "Block B",           x: 510, y: 486, type: "block" },
+  D:     { label: "Block D",           x: 414, y: 492, type: "block" },
+  E:     { label: "Block E",           x: 351, y: 418, type: "block" },
+  N:     { label: "Block N",           x: 338, y: 114, type: "block" },
+  M:     { label: "Block M",           x: 434, y: 82,  type: "block" },
+  W:     { label: "Block W",           x: 517, y: 102, type: "block" },
+  BH:    { label: "Boys Hostel",       x: 215, y: 233, type: "facility" },
+  GH:    { label: "Girls Hostel",      x: 684, y: 187, type: "facility" },
+  GTU:   { label: "GTU Building",      x: 281, y: 557, type: "facility" },
+  ENTRY: { label: "Main Entry",        x: 702, y: 583, type: "facility" },
+  FGRD:  { label: "Football Ground",   x: 531, y: 668, type: "facility" },
+  VGRD:  { label: "Volleyball Ground", x: 346, y: 386, type: "facility" },
+  BGRD:  { label: "Basketball Court",  x: 210, y: 466, type: "facility" },
+  PARK:  { label: "Parking Lot",       x: 158, y: 364, type: "facility" },
 };
 
 const EDGES = [
@@ -408,11 +498,12 @@ const EDGES = [
   ["A","FGRD",130], ["FGRD","ENTRY",105], ["ENTRY","B",120]
 ];
 
-const WALK_SPEED_M_PER_MIN = 80;
+const WALK_SPEED_M_PER_MIN = 80; // ~4.8 km/h walking pace
 
+// Build bidirectional adjacency list
 const graph = {};
-Object.keys(NODES).forEach(id => graph[id] = []);
-EDGES.forEach(([u,v,w]) => {
+Object.keys(NODES).forEach(id => { graph[id] = []; });
+EDGES.forEach(([u, v, w]) => {
   graph[u].push({ to: v, w });
   graph[v].push({ to: u, w });
 });
@@ -422,20 +513,25 @@ EDGES.forEach(([u,v,w]) => {
    ============================================================ */
 function dijkstra(source, target) {
   const dist = {}, prev = {}, visited = {};
-  Object.keys(NODES).forEach(id => dist[id] = Infinity);
+  Object.keys(NODES).forEach(id => { dist[id] = Infinity; });
   dist[source] = 0;
 
   const queue = new Set(Object.keys(NODES));
 
-  while (queue.size) {
+  while (queue.size > 0) {
     let u = null, best = Infinity;
     for (const id of queue) {
-      if (dist[id] < best) { best = dist[id]; u = id; }
+      if (dist[id] < best) {
+        best = dist[id];
+        u = id;
+      }
     }
-    if (u === null) break;
+
+    if (u === null) break; // Remaining nodes are unreachable
     queue.delete(u);
     visited[u] = true;
-    if (u === target) break;
+
+    if (u === target) break; // Reached target destination
 
     for (const { to, w } of graph[u]) {
       if (visited[to]) continue;
@@ -450,24 +546,28 @@ function dijkstra(source, target) {
   if (dist[target] === Infinity) return null;
 
   const path = [];
-  let cur = target;
-  while (cur !== undefined) { path.unshift(cur); cur = prev[cur]; }
+  let curr = target;
+  while (curr !== undefined) {
+    path.unshift(curr);
+    curr = prev[curr];
+  }
   return { path, distance: dist[target] };
 }
 
 /* ============================================================
-   3. ROOM-CODE PARSING
+   3. ROOM CODE PARSING
    ============================================================ */
 function parseRoomCode(code) {
-  const m = code.trim().toUpperCase().match(/^([A-Z]+)(\d)(\d{2})$/);
-  if (!m) return null;
-  const [, block, floor, room] = m;
+  const clean = code.trim().toUpperCase();
+  const match = clean.match(/^([A-Z]+)(\d)(\d{2})$/);
+  if (!match) return null;
+  const [, block, floor, room] = match;
   if (!NODES[block]) return null;
   return { block, floor, room };
 }
 
 /* ============================================================
-   4. UI STATE + RENDERING
+   4. UI LOGIC & MAP RENDERING
    ============================================================ */
 let mode = "name";
 let tapSrc = null, tapDst = null;
@@ -476,16 +576,24 @@ const srcSelect = document.getElementById("src-select");
 const dstSelect = document.getElementById("dst-select");
 const roomInput = document.getElementById("room-input");
 
+// Populate dropdown options
 Object.entries(NODES).forEach(([id, n]) => {
-  const o1 = document.createElement("option"); o1.value = id; o1.textContent = n.label;
+  const o1 = document.createElement("option");
+  o1.value = id;
+  o1.textContent = n.label;
   srcSelect.appendChild(o1);
-  const o2 = document.createElement("option"); o2.value = id; o2.textContent = n.label;
+
+  const o2 = document.createElement("option");
+  o2.value = id;
+  o2.textContent = n.label;
   dstSelect.appendChild(o2);
 });
 dstSelect.selectedIndex = 1;
 
+// Switch input modes
 document.getElementById("mode-name").onclick = () => setMode("name");
 document.getElementById("mode-room").onclick = () => setMode("room");
+
 function setMode(m) {
   mode = m;
   document.getElementById("mode-name").classList.toggle("active", m === "name");
@@ -494,40 +602,61 @@ function setMode(m) {
   document.getElementById("dst-field-room").style.display = m === "room" ? "block" : "none";
 }
 
-/* ---- build SVG map ---- */
+// SVG Layers
 const edgesLayer = document.getElementById("edges-layer");
 const nodesLayer = document.getElementById("nodes-layer");
 const routeLayer = document.getElementById("route-layer");
 
-EDGES.forEach(([u,v,w]) => {
+// Draw Edges & Distance Labels
+EDGES.forEach(([u, v, w]) => {
   const a = NODES[u], b = NODES[v];
-  const line = document.createElementNS("http://www.w3.org/2000/svg","line");
-  line.setAttribute("class","edge");
-  line.setAttribute("x1",a.x); line.setAttribute("y1",a.y);
-  line.setAttribute("x2",b.x); line.setAttribute("y2",b.y);
+
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("class", "edge");
+  line.setAttribute("x1", a.x);
+  line.setAttribute("y1", a.y);
+  line.setAttribute("x2", b.x);
+  line.setAttribute("y2", b.y);
   edgesLayer.appendChild(line);
 
-  const label = document.createElementNS("http://www.w3.org/2000/svg","text");
-  label.setAttribute("class","edge-label");
-  label.setAttribute("x",(a.x+b.x)/2); label.setAttribute("y",(a.y+b.y)/2 - 4);
-  label.textContent = w+"m";
+  // Label background for high-contrast readability
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+
+  const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  bg.setAttribute("class", "edge-bg");
+  bg.setAttribute("x", mx - 13);
+  bg.setAttribute("y", my - 8);
+  bg.setAttribute("width", 26);
+  bg.setAttribute("height", 16);
+  edgesLayer.appendChild(bg);
+
+  const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  label.setAttribute("class", "edge-label");
+  label.setAttribute("x", mx);
+  label.setAttribute("y", my);
+  label.textContent = `${w}m`;
   edgesLayer.appendChild(label);
 });
 
+// Draw Nodes
 Object.entries(NODES).forEach(([id, n]) => {
-  const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.setAttribute("class", "node-group");
   g.setAttribute("data-id", id);
-  g.style.cursor = "pointer";
 
-  const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
-  c.setAttribute("class","node-circle");
-  c.setAttribute("cx", n.x); c.setAttribute("cy", n.y); c.setAttribute("r", 20);
+  const radius = id.length > 2 ? 22 : 18;
+  const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  c.setAttribute("class", `node-circle ${n.type === 'facility' ? 'is-landmark' : ''}`);
+  c.setAttribute("cx", n.x);
+  c.setAttribute("cy", n.y);
+  c.setAttribute("r", radius);
   g.appendChild(c);
 
-  const t = document.createElementNS("http://www.w3.org/2000/svg","text");
-  t.setAttribute("class","node-label");
-  t.setAttribute("x", n.x); t.setAttribute("y", n.y + 4);
-  t.setAttribute("dominant-baseline", "middle");
+  const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  t.setAttribute("class", "node-label");
+  t.setAttribute("x", n.x);
+  t.setAttribute("y", n.y);
   t.textContent = id;
   g.appendChild(t);
 
@@ -535,11 +664,14 @@ Object.entries(NODES).forEach(([id, n]) => {
   nodesLayer.appendChild(g);
 });
 
-function nodeCircle(id){ return nodesLayer.querySelector(`g[data-id="${id}"] circle`); }
+function nodeCircle(id) {
+  return nodesLayer.querySelector(`g[data-id="${id}"] circle`);
+}
 
 function onTapNode(id) {
   if (!tapSrc || (tapSrc && tapDst)) {
-    tapSrc = id; tapDst = null;
+    tapSrc = id;
+    tapDst = null;
     clearNodeStates();
     nodeCircle(id).classList.add("selected-src");
     srcSelect.value = id;
@@ -553,32 +685,35 @@ function onTapNode(id) {
   updateTapStatus();
 }
 
-function updateTapStatus(){
+function updateTapStatus() {
   const el = document.getElementById("tap-status");
   if (tapSrc && tapDst) {
-    el.innerHTML = `Map selection: <b>${NODES[tapSrc].label}</b> → <b>${NODES[tapDst].label}</b>. Tap "Find shortest route" or tap the map again to restart.`;
+    el.innerHTML = `Map Selection: <b>${NODES[tapSrc].label}</b> &rarr; <b>${NODES[tapDst].label}</b>. Click "Find Shortest Route" or tap any node to reset.`;
   } else if (tapSrc) {
-    el.innerHTML = `Start set to <b>${NODES[tapSrc].label}</b>. Tap a destination block on the map.`;
+    el.innerHTML = `Starting at <b>${NODES[tapSrc].label}</b>. Now tap your destination node on the map.`;
   } else {
-    el.innerHTML = `Tip: you can also <b>tap two blocks on the map</b> to set start and destination directly — no dropdown needed.`;
+    el.innerHTML = `Tip: You can also <b>tap two blocks on the campus map</b> to set your starting and destination blocks directly.`;
   }
 }
 
-function clearNodeStates(){
+function clearNodeStates() {
   nodesLayer.querySelectorAll(".node-circle").forEach(c => {
-    c.classList.remove("selected-src","selected-dst","on-route");
+    c.classList.remove("selected-src", "selected-dst", "on-route");
   });
 }
 
-/* ---- run route + render ---- */
-document.getElementById("find-btn").onclick = runRoute;
+// Reset Button Handler
 document.getElementById("reset-btn").onclick = () => {
-  tapSrc = null; tapDst = null;
+  tapSrc = null;
+  tapDst = null;
   clearNodeStates();
   routeLayer.innerHTML = "";
   document.getElementById("result").classList.remove("show");
   updateTapStatus();
 };
+
+// Route Calculation Handler
+document.getElementById("find-btn").onclick = runRoute;
 
 function runRoute() {
   const source = srcSelect.value;
@@ -589,27 +724,27 @@ function runRoute() {
   } else {
     roomInfo = parseRoomCode(roomInput.value);
     if (!roomInfo) {
-      showError("Couldn't read that room code. Try a format like N207 (block letter + floor + room).");
+      showError("Invalid room format. Please use standard formats like N207, B201, or C001.");
       return;
     }
     target = roomInfo.block;
   }
 
   if (source === target) {
-    showError("Start and destination are the same block.");
+    showError("Starting point and destination are the exact same location.");
     return;
   }
 
   const result = dijkstra(source, target);
   if (!result) {
-    showError("No walkable path found between these two points.");
+    showError("No connected walkable path could be found between these two points.");
     return;
   }
 
   renderRoute(result, roomInfo);
 }
 
-function showError(msg){
+function showError(msg) {
   const result = document.getElementById("result");
   result.classList.add("show");
   document.getElementById("m-distance").textContent = "—";
@@ -624,53 +759,48 @@ function renderRoute({ path, distance }, roomInfo) {
   routeLayer.innerHTML = "";
   clearNodeStates();
 
-  // Draw animated polyline across route
+  // Create animated path
   const pts = path.map(id => `${NODES[id].x},${NODES[id].y}`).join(" ");
   const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
   polyline.setAttribute("class", "route-path animate");
   polyline.setAttribute("points", pts);
   routeLayer.appendChild(polyline);
 
-  // Recalculate stroke-dasharray dynamically to match path length
+  // Dynamic animation setup
   const totalLength = polyline.getTotalLength ? polyline.getTotalLength() : 2000;
   polyline.style.strokeDasharray = totalLength;
   polyline.style.strokeDashoffset = totalLength;
 
-  // Highlight nodes
+  // Highlight path nodes
   path.forEach((id, idx) => {
     const circle = nodeCircle(id);
     if (!circle) return;
-    if (idx === 0) {
-      circle.classList.add("selected-src");
-    } else if (idx === path.length - 1) {
-      circle.classList.add("selected-dst");
-    } else {
-      circle.classList.add("on-route");
-    }
+    if (idx === 0) circle.classList.add("selected-src");
+    else if (idx === path.length - 1) circle.classList.add("selected-dst");
+    else circle.classList.add("on-route");
   });
 
-  // Calculate metrics
+  // Calculate and display stats
   const walkMinutes = Math.max(1, Math.round(distance / WALK_SPEED_M_PER_MIN));
   const hops = path.length - 1;
 
   document.getElementById("m-distance").textContent = distance;
-  document.getElementById("m-time").textContent = `${walkMinutes} min`;
+  document.getElementById("m-time").textContent = `~${walkMinutes} min`;
   document.getElementById("m-hops").textContent = hops;
 
-  // Render path text
   const stepText = path.map((id, i) => {
     const name = NODES[id].label;
-    return i === 0 || i === path.length - 1 ? `<b>${name}</b>` : name;
-  }).join(" → ");
-  document.getElementById("m-path").innerHTML = `Route: ${stepText}`;
+    return (i === 0 || i === path.length - 1) ? `<b>${name}</b>` : name;
+  }).join(" &rarr; ");
 
-  // Render room info note if available
+  document.getElementById("m-path").innerHTML = `<b>Navigation:</b> ${stepText}`;
+
   const roomNoteEl = document.getElementById("m-room-note");
   if (roomInfo) {
-    const floorLabel = roomInfo.floor === "0" ? "Ground floor" : `Floor ${roomInfo.floor}`;
+    const floorLabel = roomInfo.floor === "0" ? "Ground Floor" : `Floor ${roomInfo.floor}`;
     roomNoteEl.innerHTML = `
       <div class="room-note">
-        Destination details: <b>Block ${roomInfo.block}</b>, <b>${floorLabel}</b>, Room <b>${roomInfo.room}</b>.
+        Arrived at <b>${NODES[roomInfo.block].label}</b> &bull; Head to <b>${floorLabel}</b>, Room <b>${roomInfo.room}</b>.
       </div>
     `;
   } else {
