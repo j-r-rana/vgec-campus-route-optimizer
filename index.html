@@ -240,6 +240,7 @@
     stroke-width:5;
     fill:none;
     stroke-linecap:round;
+    stroke-linejoin:round;
     stroke-dasharray: 2000;
     stroke-dashoffset: 2000;
     filter: drop-shadow(0 0 5px rgba(232,163,61,0.6));
@@ -366,11 +367,6 @@
 <script>
 /* ============================================================
    1. GRAPH DATA
-   Nodes = campus locations (blocks / landmarks)
-   Edges = direct walkable paths with estimated distance (m)
-   NOTE: distances are scale-estimates from the campus layout,
-   not GPS-measured — flagged for verification before final
-   submission, same as noted in the written report.
    ============================================================ */
 const NODES = {
   I:     { label: "Block I (Central)", x: 474, y: 287 },
@@ -398,33 +394,20 @@ const NODES = {
   PARK:  { label: "Parking Lot",       x: 158, y: 364 },
 };
 
-/* Distances are scaled proportionally from the site-plan pixel
-   layout (approx 0.55 m/px), NOT GPS/pedometer-measured. Treat
-   as placeholders to verify with a real walk-through before
-   final submission — see README. */
 const EDGES = [
-  // inner ring of blocks around the central quad
   ["H","J",65], ["J","K",40], ["K","L",50], ["L","A",50], ["A","B",45],
   ["B","D",55], ["D","E",55], ["E","F",50], ["F","G",50], ["G","H",50],
-  // spokes to the central block I
   ["I","H",45], ["I","J",45], ["I","K",65], ["I","L",50], ["I","F",50], ["I","C",70],
-  // block C bridges into the ring
   ["C","B",45], ["C","D",45],
-  // top building cluster (N / M / W)
   ["G","N",90], ["N","M",55], ["M","W",45], ["W","K",115],
-  // hostels
   ["N","BH",120], ["GH","W",100],
-  // GTU building
   ["D","GTU",80],
-  // sports grounds + parking
   ["E","VGRD",20], ["VGRD","BGRD",85], ["G","PARK",115], ["PARK","BGRD",60],
-  // entry + football ground
   ["A","FGRD",130], ["FGRD","ENTRY",105], ["ENTRY","B",120]
 ];
 
-const WALK_SPEED_M_PER_MIN = 80; // ~4.8 km/h average walking pace
+const WALK_SPEED_M_PER_MIN = 80;
 
-/* build adjacency list from edge list */
 const graph = {};
 Object.keys(NODES).forEach(id => graph[id] = []);
 EDGES.forEach(([u,v,w]) => {
@@ -434,12 +417,6 @@ EDGES.forEach(([u,v,w]) => {
 
 /* ============================================================
    2. DIJKSTRA'S ALGORITHM
-   Time complexity : O((V + E) log V) with a binary-heap priority
-                      queue (implemented below as a simple array-
-                      backed min-extraction, fine at this graph
-                      size — swap in a heap for larger campuses).
-   Space complexity: O(V + E) for the adjacency list + distance /
-                      parent tables.
    ============================================================ */
 function dijkstra(source, target) {
   const dist = {}, prev = {}, visited = {};
@@ -453,10 +430,10 @@ function dijkstra(source, target) {
     for (const id of queue) {
       if (dist[id] < best) { best = dist[id]; u = id; }
     }
-    if (u === null) break;          // remaining nodes unreachable
+    if (u === null) break;
     queue.delete(u);
     visited[u] = true;
-    if (u === target) break;        // early exit once destination is settled
+    if (u === target) break;
 
     for (const { to, w } of graph[u]) {
       if (visited[to]) continue;
@@ -478,8 +455,6 @@ function dijkstra(source, target) {
 
 /* ============================================================
    3. ROOM-CODE PARSING
-   Format: <BlockLetter><Floor digit><Room 2 digits>  e.g. N207
-   -> Block N, Floor 2, Room 07
    ============================================================ */
 function parseRoomCode(code) {
   const m = code.trim().toUpperCase().match(/^([A-Z]+)(\d)(\d{2})$/);
@@ -492,7 +467,7 @@ function parseRoomCode(code) {
 /* ============================================================
    4. UI STATE + RENDERING
    ============================================================ */
-let mode = "name";      // "name" | "room"
+let mode = "name";
 let tapSrc = null, tapDst = null;
 
 const srcSelect = document.getElementById("src-select");
@@ -517,7 +492,7 @@ function setMode(m) {
   document.getElementById("dst-field-room").style.display = m === "room" ? "block" : "none";
 }
 
-/* ---- build the SVG map ---- */
+/* ---- build SVG map ---- */
 const edgesLayer = document.getElementById("edges-layer");
 const nodesLayer = document.getElementById("nodes-layer");
 const routeLayer = document.getElementById("route-layer");
@@ -549,7 +524,8 @@ Object.entries(NODES).forEach(([id, n]) => {
 
   const t = document.createElementNS("http://www.w3.org/2000/svg","text");
   t.setAttribute("class","node-label");
-  t.setAttribute("x", n.x); t.setAttribute("y", n.y + 36);
+  t.setAttribute("x", n.x); t.setAttribute("y", n.y + 4);
+  t.setAttribute("dominant-baseline", "middle");
   t.textContent = id;
   g.appendChild(t);
 
@@ -646,6 +622,61 @@ function renderRoute({ path, distance }, roomInfo) {
   routeLayer.innerHTML = "";
   clearNodeStates();
 
-  // draw animated polyline through the path nodes
+  // Draw animated polyline across route
   const pts = path.map(id => `${NODES[id].x},${NODES[id].y}`).join(" ");
-  const
+  const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+  polyline.setAttribute("class", "route-path animate");
+  polyline.setAttribute("points", pts);
+  routeLayer.appendChild(polyline);
+
+  // Recalculate stroke-dasharray dynamically to match path length
+  const totalLength = polyline.getTotalLength ? polyline.getTotalLength() : 2000;
+  polyline.style.strokeDasharray = totalLength;
+  polyline.style.strokeDashoffset = totalLength;
+
+  // Highlight nodes
+  path.forEach((id, idx) => {
+    const circle = nodeCircle(id);
+    if (!circle) return;
+    if (idx === 0) {
+      circle.classList.add("selected-src");
+    } else if (idx === path.length - 1) {
+      circle.classList.add("selected-dst");
+    } else {
+      circle.classList.add("on-route");
+    }
+  });
+
+  // Calculate metrics
+  const walkMinutes = Math.max(1, Math.round(distance / WALK_SPEED_M_PER_MIN));
+  const hops = path.length - 1;
+
+  document.getElementById("m-distance").textContent = distance;
+  document.getElementById("m-time").textContent = `${walkMinutes} min`;
+  document.getElementById("m-hops").textContent = hops;
+
+  // Render path text
+  const stepText = path.map((id, i) => {
+    const name = NODES[id].label;
+    return i === 0 || i === path.length - 1 ? `<b>${name}</b>` : name;
+  }).join(" → ");
+  document.getElementById("m-path").innerHTML = `Route: ${stepText}`;
+
+  // Render room info note if available
+  const roomNoteEl = document.getElementById("m-room-note");
+  if (roomInfo) {
+    const floorLabel = roomInfo.floor === "0" ? "Ground floor" : `Floor ${roomInfo.floor}`;
+    roomNoteEl.innerHTML = `
+      <div class="room-note">
+        Destination details: <b>Block ${roomInfo.block}</b>, <b>${floorLabel}</b>, Room <b>${roomInfo.room}</b>.
+      </div>
+    `;
+  } else {
+    roomNoteEl.innerHTML = "";
+  }
+
+  document.getElementById("result").classList.add("show");
+}
+</script>
+</body>
+</html>
