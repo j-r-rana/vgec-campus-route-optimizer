@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VGEC Navigator — Shortest Route Finder</title>
+<style>
+  :root{
+    --ink:#0f1b2b;
+    --ink-2:#16263b;
+    --panel:#122135;
+    --line:#2a3b52;
+    --paper:#f2efe9;
+    --paper-dim:#c7cdd6;
+    --amber:#e8a33d;
+    --amber-dim:#8a6428;
+    --ok:#7fb88f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height:100vh;
+  }
+  .headline-font{
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+
+  /* ---------- layout shell ---------- */
+  header{
+    padding:28px clamp(20px,4vw,56px) 18px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  header .brand{
+    display:flex; align-items:baseline; gap:14px;
+  }
+  header h1{
+    font-size:1.5rem;
+    margin:0;
+    font-weight:600;
+    letter-spacing:0.2px;
+  }
+  header .tag{
+    color:var(--paper-dim);
+    font-size:0.82rem;
+    letter-spacing:0.3px;
+  }
+  header .dept{
+    font-size:0.78rem;
+    color:var(--amber);
+    text-align:right;
+    line-height:1.4;
+  }
+
+  main{
+    display:grid;
+    grid-template-columns: 340px 1fr;
+    gap:0;
+    min-height:calc(100vh - 92px);
+  }
+  @media (max-width: 880px){
+    main{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- control panel ---------- */
+  .panel{
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:26px 24px 40px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+  @media (max-width: 880px){
+    .panel{ border-right:none; border-bottom:1px solid var(--line); }
+  }
+
+  .mode-switch{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .mode-switch button{
+    flex:1;
+    background:transparent;
+    border:none;
+    color:var(--paper-dim);
+    padding:10px 8px;
+    font-size:0.8rem;
+    cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .mode-switch button.active{
+    background:var(--amber);
+    color:var(--ink);
+    font-weight:600;
+  }
+
+  label{
+    display:block;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--paper-dim);
+    margin-bottom:6px;
+  }
+  select, input{
+    width:100%;
+    background:var(--ink-2);
+    border:1px solid var(--line);
+    color:var(--paper);
+    padding:10px 12px;
+    border-radius:6px;
+    font-size:0.92rem;
+  }
+  select:focus, input:focus{
+    outline:2px solid var(--amber);
+    outline-offset:1px;
+  }
+  .field{ display:flex; flex-direction:column; gap:0; }
+  .hint{
+    font-size:0.72rem;
+    color:var(--paper-dim);
+    margin-top:5px;
+    line-height:1.4;
+  }
+
+  .tap-status{
+    border:1px dashed var(--line);
+    border-radius:8px;
+    padding:12px;
+    font-size:0.82rem;
+    color:var(--paper-dim);
+    line-height:1.5;
+  }
+  .tap-status b{ color:var(--paper); }
+
+  button.primary{
+    background:var(--amber);
+    color:var(--ink);
+    border:none;
+    padding:13px 16px;
+    border-radius:8px;
+    font-weight:700;
+    font-size:0.92rem;
+    cursor:pointer;
+    letter-spacing:0.02em;
+    transition:filter .15s;
+  }
+  button.primary:hover{ filter:brightness(1.08); }
+  button.primary:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  button.ghost{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--paper-dim);
+    padding:9px 12px;
+    border-radius:8px;
+    font-size:0.8rem;
+    cursor:pointer;
+  }
+  button.ghost:hover{ color:var(--paper); border-color:var(--paper-dim); }
+
+  .result{
+    border-top:1px solid var(--line);
+    padding-top:18px;
+    display:none;
+    flex-direction:column;
+    gap:10px;
+  }
+  .result.show{ display:flex; }
+  .result .metrics{
+    display:flex;
+    gap:18px;
+  }
+  .metric b{
+    display:block;
+    font-size:1.5rem;
+    font-family:Georgia, serif;
+    color:var(--amber);
+    line-height:1;
+  }
+  .metric span{
+    font-size:0.7rem;
+    color:var(--paper-dim);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .path-steps{
+    font-size:0.85rem;
+    line-height:1.9;
+    color:var(--paper-dim);
+  }
+  .path-steps b{ color:var(--paper); }
+  .room-note{
+    background:var(--ink-2);
+    border-left:3px solid var(--ok);
+    padding:10px 12px;
+    font-size:0.82rem;
+    border-radius:0 6px 6px 0;
+  }
+  .error-note{
+    background:var(--ink-2);
+    border-left:3px solid #c1594f;
+    padding:10px 12px;
+    font-size:0.82rem;
+    border-radius:0 6px 6px 0;
+    color:#e3a89f;
+  }
+
+  /* ---------- map ---------- */
+  .map-wrap{
+    position:relative;
+    padding:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      linear-gradient(var(--ink) 0%, var(--ink) 100%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 34px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 34px);
+  }
+  svg{ width:100%; height:auto; max-width:980px; }
+  .edge{ stroke:var(--line); stroke-width:3; fill:none; }
+  .edge-label{
+    fill:var(--paper-dim);
+    font-size:11px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .route-path{
+    stroke:var(--amber);
+    stroke-width:5;
+    fill:none;
+    stroke-linecap:round;
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    filter: drop-shadow(0 0 5px rgba(232,163,61,0.6));
+  }
+  .route-path.animate{
+    animation: draw 1.1s ease forwards;
+  }
+  @keyframes draw{ to { stroke-dashoffset: 0; } }
+
+  .node-circle{
+    stroke:var(--paper);
+    stroke-width:1.5;
+    fill:var(--ink-2);
+    cursor:pointer;
+    transition: fill .15s, stroke .15s, r .15s;
+  }
+  .node-circle:hover{ fill:var(--amber-dim); }
+  .node-circle.selected-src{ fill:var(--amber); stroke:var(--amber); }
+  .node-circle.selected-dst{ fill:var(--ok); stroke:var(--ok); }
+  .node-circle.on-route{ stroke:var(--amber); stroke-width:2.5; }
+
+  .node-label{
+    fill:var(--paper);
+    font-size:12px;
+    font-weight:600;
+    text-anchor:middle;
+    pointer-events:none;
+    font-family:'Segoe UI', sans-serif;
+  }
+  .node-hub circle{ fill:var(--ink-2); }
+
+  .legend{
+    position:absolute;
+    bottom:20px;
+    left:36px;
+    font-size:0.72rem;
+    color:var(--paper-dim);
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    background:rgba(15,27,43,0.85);
+    padding:8px 12px;
+    border-radius:6px;
+    border:1px solid var(--line);
+  }
+  .legend span{ display:flex; align-items:center; gap:6px; }
+  .dot{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1 class="headline-font">VGEC Navigator</h1>
+    <span class="tag">shortest-route campus wayfinding · Dijkstra's algorithm</span>
+  </div>
+  <div class="dept">Algorithm Analysis &amp; Design · BE05016011<br>Route Optimization Case Study</div>
+</header>
+
+<main>
+  <section class="panel">
+
+    <div>
+      <label>Input mode</label>
+      <div class="mode-switch">
+        <button id="mode-name" class="active">Search by name</button>
+        <button id="mode-room">Room code</button>
+      </div>
+    </div>
+
+    <!-- SOURCE -->
+    <div class="field" id="src-field-wrap">
+      <label for="src-select">Starting from</label>
+      <select id="src-select"></select>
+    </div>
+
+    <!-- DESTINATION: name mode -->
+    <div class="field" id="dst-field-name">
+      <label for="dst-select">Going to</label>
+      <select id="dst-select"></select>
+    </div>
+
+    <!-- DESTINATION: room code mode -->
+    <div class="field" id="dst-field-room" style="display:none;">
+      <label for="room-input">Room code</label>
+      <input id="room-input" placeholder="e.g. N207 or B201" maxlength="6">
+      <div class="hint">Format: block letter + floor + room, e.g. <b>N207</b> = Block N, Floor 2, Room 07.</div>
+    </div>
+
+    <div class="tap-status" id="tap-status">
+      Tip: you can also <b>tap two blocks on the map</b> to set start and destination directly — no dropdown needed.
+    </div>
+
+    <button class="primary" id="find-btn">Find shortest route</button>
+    <button class="ghost" id="reset-btn">Reset selection</button>
+
+    <div class="result" id="result">
+      <div class="metrics">
+        <div class="metric"><b id="m-distance">—</b><span>meters</span></div>
+        <div class="metric"><b id="m-time">—</b><span>walk time</span></div>
+        <div class="metric"><b id="m-hops">—</b><span>blocks passed</span></div>
+      </div>
+      <div class="path-steps" id="m-path"></div>
+      <div id="m-room-note"></div>
+    </div>
+
+  </section>
+
+  <section class="map-wrap">
+    <svg id="map" viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg" aria-label="VGEC campus graph">
+      <g id="edges-layer"></g>
+      <g id="route-layer"></g>
+      <g id="nodes-layer"></g>
+    </svg>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--ink-2);border:1px solid var(--paper)"></i> Block</span>
+      <span><i class="dot" style="background:var(--amber)"></i> Start</span>
+      <span><i class="dot" style="background:var(--ok)"></i> Destination</span>
+      <span><i class="dot" style="background:var(--amber);box-shadow:0 0 4px var(--amber)"></i> Shortest path</span>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ============================================================
+   1. GRAPH DATA
+   Nodes = campus locations (blocks / landmarks)
+   Edges = direct walkable paths with estimated distance (m)
+   NOTE: distances are scale-estimates from the campus layout,
+   not GPS-measured — flagged for verification before final
+   submission, same as noted in the written report.
+   ============================================================ */
+const NODES = {
+  I:     { label: "Block I (Central)", x: 474, y: 287 },
+  H:     { label: "Block H",           x: 424, y: 219 },
+  J:     { label: "Block J",           x: 542, y: 242 },
+  K:     { label: "Block K",           x: 592, y: 301 },
+  L:     { label: "Block L",           x: 522, y: 361 },
+  C:     { label: "Block C",           x: 458, y: 417 },
+  F:     { label: "Block F",           x: 408, y: 352 },
+  G:     { label: "Block G",           x: 355, y: 281 },
+  A:     { label: "Block A",           x: 572, y: 433 },
+  B:     { label: "Block B",           x: 510, y: 486 },
+  D:     { label: "Block D",           x: 414, y: 492 },
+  E:     { label: "Block E",           x: 351, y: 418 },
+  N:     { label: "Block N",           x: 338, y: 114 },
+  M:     { label: "Block M",           x: 434, y: 82  },
+  W:     { label: "Block W",           x: 517, y: 102 },
+  BH:    { label: "Boys Hostel",       x: 215, y: 233 },
+  GH:    { label: "Girls Hostel",      x: 684, y: 187 },
+  GTU:   { label: "GTU Building",      x: 281, y: 557 },
+  ENTRY: { label: "Main Entry",        x: 702, y: 583 },
+  FGRD:  { label: "Football Ground",   x: 531, y: 668 },
+  VGRD:  { label: "Volleyball Ground", x: 346, y: 386 },
+  BGRD:  { label: "Basketball Court",  x: 210, y: 466 },
+  PARK:  { label: "Parking Lot",       x: 158, y: 364 },
+};
+
+/* Distances are scaled proportionally from the site-plan pixel
+   layout (approx 0.55 m/px), NOT GPS/pedometer-measured. Treat
+   as placeholders to verify with a real walk-through before
+   final submission — see README. */
+const EDGES = [
+  // inner ring of blocks around the central quad
+  ["H","J",65], ["J","K",40], ["K","L",50], ["L","A",50], ["A","B",45],
+  ["B","D",55], ["D","E",55], ["E","F",50], ["F","G",50], ["G","H",50],
+  // spokes to the central block I
+  ["I","H",45], ["I","J",45], ["I","K",65], ["I","L",50], ["I","F",50], ["I","C",70],
+  // block C bridges into the ring
+  ["C","B",45], ["C","D",45],
+  // top building cluster (N / M / W)
+  ["G","N",90], ["N","M",55], ["M","W",45], ["W","K",115],
+  // hostels
+  ["N","BH",120], ["GH","W",100],
+  // GTU building
+  ["D","GTU",80],
+  // sports grounds + parking
+  ["E","VGRD",20], ["VGRD","BGRD",85], ["G","PARK",115], ["PARK","BGRD",60],
+  // entry + football ground
+  ["A","FGRD",130], ["FGRD","ENTRY",105], ["ENTRY","B",120]
+];
+
+const WALK_SPEED_M_PER_MIN = 80; // ~4.8 km/h average walking pace
+
+/* build adjacency list from edge list */
+const graph = {};
+Object.keys(NODES).forEach(id => graph[id] = []);
+EDGES.forEach(([u,v,w]) => {
+  graph[u].push({ to: v, w });
+  graph[v].push({ to: u, w });
+});
+
+/* ============================================================
+   2. DIJKSTRA'S ALGORITHM
+   Time complexity : O((V + E) log V) with a binary-heap priority
+                      queue (implemented below as a simple array-
+                      backed min-extraction, fine at this graph
+                      size — swap in a heap for larger campuses).
+   Space complexity: O(V + E) for the adjacency list + distance /
+                      parent tables.
+   ============================================================ */
+function dijkstra(source, target) {
+  const dist = {}, prev = {}, visited = {};
+  Object.keys(NODES).forEach(id => dist[id] = Infinity);
+  dist[source] = 0;
+
+  const queue = new Set(Object.keys(NODES));
+
+  while (queue.size) {
+    let u = null, best = Infinity;
+    for (const id of queue) {
+      if (dist[id] < best) { best = dist[id]; u = id; }
+    }
+    if (u === null) break;          // remaining nodes unreachable
+    queue.delete(u);
+    visited[u] = true;
+    if (u === target) break;        // early exit once destination is settled
+
+    for (const { to, w } of graph[u]) {
+      if (visited[to]) continue;
+      const alt = dist[u] + w;
+      if (alt < dist[to]) {
+        dist[to] = alt;
+        prev[to] = u;
+      }
+    }
+  }
+
+  if (dist[target] === Infinity) return null;
+
+  const path = [];
+  let cur = target;
+  while (cur !== undefined) { path.unshift(cur); cur = prev[cur]; }
+  return { path, distance: dist[target] };
+}
+
+/* ============================================================
+   3. ROOM-CODE PARSING
+   Format: <BlockLetter><Floor digit><Room 2 digits>  e.g. N207
+   -> Block N, Floor 2, Room 07
+   ============================================================ */
+function parseRoomCode(code) {
+  const m = code.trim().toUpperCase().match(/^([A-Z]+)(\d)(\d{2})$/);
+  if (!m) return null;
+  const [, block, floor, room] = m;
+  if (!NODES[block]) return null;
+  return { block, floor, room };
+}
+
+/* ============================================================
+   4. UI STATE + RENDERING
+   ============================================================ */
+let mode = "name";      // "name" | "room"
+let tapSrc = null, tapDst = null;
+
+const srcSelect = document.getElementById("src-select");
+const dstSelect = document.getElementById("dst-select");
+const roomInput = document.getElementById("room-input");
+
+Object.entries(NODES).forEach(([id, n]) => {
+  const o1 = document.createElement("option"); o1.value = id; o1.textContent = n.label;
+  srcSelect.appendChild(o1);
+  const o2 = document.createElement("option"); o2.value = id; o2.textContent = n.label;
+  dstSelect.appendChild(o2);
+});
+dstSelect.selectedIndex = 1;
+
+document.getElementById("mode-name").onclick = () => setMode("name");
+document.getElementById("mode-room").onclick = () => setMode("room");
+function setMode(m) {
+  mode = m;
+  document.getElementById("mode-name").classList.toggle("active", m === "name");
+  document.getElementById("mode-room").classList.toggle("active", m === "room");
+  document.getElementById("dst-field-name").style.display = m === "name" ? "block" : "none";
+  document.getElementById("dst-field-room").style.display = m === "room" ? "block" : "none";
+}
+
+/* ---- build the SVG map ---- */
+const edgesLayer = document.getElementById("edges-layer");
+const nodesLayer = document.getElementById("nodes-layer");
+const routeLayer = document.getElementById("route-layer");
+
+EDGES.forEach(([u,v,w]) => {
+  const a = NODES[u], b = NODES[v];
+  const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+  line.setAttribute("class","edge");
+  line.setAttribute("x1",a.x); line.setAttribute("y1",a.y);
+  line.setAttribute("x2",b.x); line.setAttribute("y2",b.y);
+  edgesLayer.appendChild(line);
+
+  const label = document.createElementNS("http://www.w3.org/2000/svg","text");
+  label.setAttribute("class","edge-label");
+  label.setAttribute("x",(a.x+b.x)/2); label.setAttribute("y",(a.y+b.y)/2 - 4);
+  label.textContent = w+"m";
+  edgesLayer.appendChild(label);
+});
+
+Object.entries(NODES).forEach(([id, n]) => {
+  const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+  g.setAttribute("data-id", id);
+  g.style.cursor = "pointer";
+
+  const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  c.setAttribute("class","node-circle");
+  c.setAttribute("cx", n.x); c.setAttribute("cy", n.y); c.setAttribute("r", 20);
+  g.appendChild(c);
+
+  const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+  t.setAttribute("class","node-label");
+  t.setAttribute("x", n.x); t.setAttribute("y", n.y + 36);
+  t.textContent = id;
+  g.appendChild(t);
+
+  g.addEventListener("click", () => onTapNode(id));
+  nodesLayer.appendChild(g);
+});
+
+function nodeCircle(id){ return nodesLayer.querySelector(`g[data-id="${id}"] circle`); }
+
+function onTapNode(id) {
+  if (!tapSrc || (tapSrc && tapDst)) {
+    tapSrc = id; tapDst = null;
+    clearNodeStates();
+    nodeCircle(id).classList.add("selected-src");
+    srcSelect.value = id;
+    updateTapStatus();
+    return;
+  }
+  if (id === tapSrc) return;
+  tapDst = id;
+  nodeCircle(id).classList.add("selected-dst");
+  if (mode === "name") dstSelect.value = id;
+  updateTapStatus();
+}
+
+function updateTapStatus(){
+  const el = document.getElementById("tap-status");
+  if (tapSrc && tapDst) {
+    el.innerHTML = `Map selection: <b>${NODES[tapSrc].label}</b> → <b>${NODES[tapDst].label}</b>. Tap "Find shortest route" or tap the map again to restart.`;
+  } else if (tapSrc) {
+    el.innerHTML = `Start set to <b>${NODES[tapSrc].label}</b>. Tap a destination block on the map.`;
+  } else {
+    el.innerHTML = `Tip: you can also <b>tap two blocks on the map</b> to set start and destination directly — no dropdown needed.`;
+  }
+}
+
+function clearNodeStates(){
+  nodesLayer.querySelectorAll(".node-circle").forEach(c => {
+    c.classList.remove("selected-src","selected-dst","on-route");
+  });
+}
+
+/* ---- run route + render ---- */
+document.getElementById("find-btn").onclick = runRoute;
+document.getElementById("reset-btn").onclick = () => {
+  tapSrc = null; tapDst = null;
+  clearNodeStates();
+  routeLayer.innerHTML = "";
+  document.getElementById("result").classList.remove("show");
+  updateTapStatus();
+};
+
+function runRoute() {
+  const source = srcSelect.value;
+  let target, roomInfo = null;
+
+  if (mode === "name") {
+    target = dstSelect.value;
+  } else {
+    roomInfo = parseRoomCode(roomInput.value);
+    if (!roomInfo) {
+      showError("Couldn't read that room code. Try a format like N207 (block letter + floor + room).");
+      return;
+    }
+    target = roomInfo.block;
+  }
+
+  if (source === target) {
+    showError("Start and destination are the same block.");
+    return;
+  }
+
+  const result = dijkstra(source, target);
+  if (!result) {
+    showError("No walkable path found between these two points.");
+    return;
+  }
+
+  renderRoute(result, roomInfo);
+}
+
+function showError(msg){
+  const result = document.getElementById("result");
+  result.classList.add("show");
+  document.getElementById("m-distance").textContent = "—";
+  document.getElementById("m-time").textContent = "—";
+  document.getElementById("m-hops").textContent = "—";
+  document.getElementById("m-path").innerHTML = "";
+  document.getElementById("m-room-note").innerHTML = `<div class="error-note">${msg}</div>`;
+  routeLayer.innerHTML = "";
+}
+
+function renderRoute({ path, distance }, roomInfo) {
+  routeLayer.innerHTML = "";
+  clearNodeStates();
+
+  // draw animated polyline through the path nodes
+  const pts = path.map(id => `${NODES[id].x},${NODES[id].y}`).join(" ");
+  const
